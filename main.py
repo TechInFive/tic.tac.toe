@@ -9,7 +9,6 @@ pygame.init()
 # Constants for the game
 WIDTH, HEIGHT = 300, 300
 LINE_WIDTH = 10
-WIN_LINE_WIDTH = 15
 SQUARE_SIZE = WIDTH // BOARD_COLS
 CIRCLE_RADIUS = SQUARE_SIZE // 3
 CIRCLE_WIDTH = 15
@@ -78,8 +77,7 @@ while True:
             clicked_row = int(mouseY // SQUARE_SIZE)
             clicked_col = int(mouseX // SQUARE_SIZE)
 
-            # Inside the main loop where you handle MOUSEBUTTONDOWN
-            if game.available_square(clicked_row, clicked_col) and not game.game_over:
+            if game.available_square(clicked_row, clicked_col):
                 game.mark_square(clicked_row, clicked_col)
                 if game.current_player == 1:
                     draw_x(clicked_row, clicked_col)
@@ -95,8 +93,6 @@ while True:
                 else:
                     game.toggle_player()
 
-    draw_lines()
-
     # Inside the main loop
     if game.game_over:
         if game.check_draw():
@@ -105,10 +101,11 @@ while True:
             display_text(f"Player {game.current_player} wins!")
 
         # Restart option after a delay
-        pygame.time.wait(10000)  # Wait for 3 seconds before resetting
-        game.__init__()
+        pygame.time.wait(10000)  # Wait for 10 seconds before resetting
+        game.reset_game()
         screen.fill(BG_COLOR)
-        draw_lines()
-    
+
+    draw_lines()
+
     # Update the display
     pygame.display.update()

@@ -7,26 +7,30 @@ class TicTacToe:
         self.current_player = 1
         self.game_over = False
 
+    def toggle_player(self):
+        self.current_player = self.current_player % 2 + 1
+
     def available_square(self, row, col):
         return self.board[row][col] is None
 
     def mark_square(self, row, col):
-        if self.board[row][col] is None:
-            self.board[row][col] = self.current_player
-        return False
+        self.board[row][col] = self.current_player
 
     def check_win(self):
-        # Check rows, columns and diagonals for a win
         mark = self.current_player
-        for row in range(BOARD_ROWS):
-            if self.board[row][0] == mark and self.board[row][1] == mark and self.board[row][2] == mark:
+        # Check rows for a win
+        for row in self.board:
+            if all(cell == mark for cell in row):
                 return True
-        for col in range(BOARD_COLS):
-            if self.board[0][col] == mark and self.board[1][col] == mark and self.board[2][col] == mark:
+        # Check cols for a win
+        for col in zip(*self.board):
+            if all(cell == mark for cell in col):
                 return True
-        if self.board[0][0] == mark and self.board[1][1] == mark and self.board[2][2] == mark:
+        # Check diagonal from top-left to bottom-right for a win
+        if all(self.board[i][i] == mark for i in range(BOARD_ROWS)):
             return True
-        if self.board[0][2] == mark and self.board[1][1] == mark and self.board[2][0] == mark:
+        # Check diagonal from top-right to bottom-left for a win
+        if all(self.board[i][BOARD_ROWS - 1 - i] == mark for i in range(BOARD_COLS)):
             return True
         return False 
 
@@ -36,9 +40,6 @@ class TicTacToe:
                 if self.board[row][col] is None:
                     return False
         return True
-
-    def toggle_player(self):
-        self.current_player = self.current_player % 2 + 1
 
     def reset_game(self):
         self.__init__()
