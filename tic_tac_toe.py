@@ -2,31 +2,40 @@ BOARD_ROWS = 3
 BOARD_COLS = 3
 
 class TicTacToe:
-    def __init__(self):
+    def __init__(self, mode, turn):
         self.board = [[None] * 3 for _ in range(3)]
         self.current_player = 1
         self.game_over = False
+
+    def toggle_player(self):
+        self.current_player = self.current_player % 2 + 1
 
     def available_square(self, row, col):
         return self.board[row][col] is None
 
     def mark_square(self, row, col):
-        if self.board[row][col] is None:
-            self.board[row][col] = self.current_player
-        return False
+        self.board[row][col] = self.current_player
+        print(f"{self.board[0][0]} {self.board[0][1]} {self.board[0][2]}")
+        print(f"{self.board[1][0]} {self.board[1][1]} {self.board[1][2]}")
+        print(f"{self.board[2][0]} {self.board[2][1]} {self.board[2][2]}")
 
     def check_win(self):
-        # Check rows, columns and diagonals for a win
-        mark = self.current_player
-        for row in range(BOARD_ROWS):
-            if self.board[row][0] == mark and self.board[row][1] == mark and self.board[row][2] == mark:
+        return self.check_player_win(self.current_player)
+
+    def check_player_win(self, player):
+        # Check rows for a win
+        for row in self.board:
+            if all(cell == player for cell in row):
                 return True
-        for col in range(BOARD_COLS):
-            if self.board[0][col] == mark and self.board[1][col] == mark and self.board[2][col] == mark:
+        # Check cols for a win
+        for col in zip(*self.board):
+            if all(cell == player for cell in col):
                 return True
-        if self.board[0][0] == mark and self.board[1][1] == mark and self.board[2][2] == mark:
+        # Check diagonal from top-left to bottom-right for a win
+        if all(self.board[i][i] == player for i in range(BOARD_ROWS)):
             return True
-        if self.board[0][2] == mark and self.board[1][1] == mark and self.board[2][0] == mark:
+        # Check diagonal from top-right to bottom-left for a win
+        if all(self.board[i][BOARD_ROWS - 1 - i] == player for i in range(BOARD_COLS)):
             return True
         return False 
 
@@ -37,8 +46,80 @@ class TicTacToe:
                     return False
         return True
 
-    def toggle_player(self):
-        self.current_player = self.current_player % 2 + 1
-
     def reset_game(self):
         self.__init__()
+
+    def find_immediate_win(self, player):
+        for row in range(3):
+            for col in range(3):
+                if self.board[row][col] == None:
+                    # Place the player symbol temporarily
+                    self.board[row][col] = player
+                    # Check if this move wins the game
+                    if self.check_player_win(player):
+                        self.board[row][col] = None  # Reset the cell
+                        return (row, col)
+                    # Reset the cell after checking
+                    self.board[row][col] = None
+        return None
+
+    def block_opponent_win(self, player):
+        # Determine the opponent's symbol
+        opponent = player % 2 + 1
+
+        # Use the find_immediate_win function for the opponent's symbol
+        return self.find_immediate_win(opponent)
+
+    def minimax(self, depth, is_maximizing, player):
+        opponent = player % 2 + 1
+
+        if self.check_player_win(player):
+            return 1
+        elif self.check_player_win(opponent):
+            return -1
+        elif self.check_draw():
+            return 0
+
+        if is_maximizing:
+            best_score = -float('inf')
+            for row in range(3):
+                for col in range(3):
+                    if self.board[row][col] is None:
+                        self.board[row][col] = player
+                        score = self.minimax(depth + 1, False, player)
+                        self.board[row][col] = None
+                        best_score = max(score, best_score)
+            return best_score
+        else:
+            best_score = float('inf')
+            for row in range(3):
+                for col in range(3):
+                    if self.board[row][col] is None:
+                        self.board[row][col] = opponent
+                        score = self.minimax(depth + 1, True, player)
+                        self.board[row][col] = None
+                        best_score = min(score, best_score)
+            return best_score
+
+    def find_best_move(self):
+        player = self.current_player
+
+        win_move = self.find_immediate_win(player)
+        if win_move is not None:
+            return win_move
+        block_move = self.block_opponent_win(player)
+        if block_move is not None:
+            return block_move
+        
+        best_score = -float('inf')
+        best_move = None
+        for row in range(3):
+            for col in range(3):
+                if self.board[row][col] is None:
+                    self.board[row][col] = player
+                    score = self.minimax(0, False, player)
+                    self.board[row][col] = None
+                    if score > best_score:
+                        best_score = score
+                        best_move = (row, col)
+        return best_move
