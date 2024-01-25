@@ -1,11 +1,15 @@
+import random
+
+
 BOARD_ROWS = 3
 BOARD_COLS = 3
 
 class TicTacToe:
-    def __init__(self, mode, turn):
+    def __init__(self, mode):
         self.board = [[None] * 3 for _ in range(3)]
         self.current_player = 1
         self.game_over = False
+        self.mode = mode
 
     def toggle_player(self):
         self.current_player = self.current_player % 2 + 1
@@ -15,9 +19,6 @@ class TicTacToe:
 
     def mark_square(self, row, col):
         self.board[row][col] = self.current_player
-        print(f"{self.board[0][0]} {self.board[0][1]} {self.board[0][2]}")
-        print(f"{self.board[1][0]} {self.board[1][1]} {self.board[1][2]}")
-        print(f"{self.board[2][0]} {self.board[2][1]} {self.board[2][2]}")
 
     def check_win(self):
         return self.check_player_win(self.current_player)
@@ -49,7 +50,10 @@ class TicTacToe:
     def reset_game(self):
         self.__init__()
 
-    def find_immediate_win(self, player):
+    def random_candidate(self, candidates):
+        return random.choice(candidates) if candidates else None
+
+    def find_player_win(self, player):
         for row in range(3):
             for col in range(3):
                 if self.board[row][col] == None:
@@ -63,12 +67,12 @@ class TicTacToe:
                     self.board[row][col] = None
         return None
 
-    def block_opponent_win(self, player):
-        # Determine the opponent's symbol
-        opponent = player % 2 + 1
+    def find_immediate_win(self):
+        return self.find_player_win(self.current_player)
 
-        # Use the find_immediate_win function for the opponent's symbol
-        return self.find_immediate_win(opponent)
+    def block_opponent_win(self):
+        opponent = self.current_player % 2 + 1
+        return self.find_player_win(opponent)
 
     def minimax(self, depth, is_maximizing, player):
         opponent = player % 2 + 1
@@ -101,25 +105,35 @@ class TicTacToe:
                         best_score = min(score, best_score)
             return best_score
 
+    def get_available_moves(self):
+        available_moves = []
+        for row in range(BOARD_ROWS):
+            for col in range(BOARD_COLS):
+                if self.available_square(row, col):
+                    available_moves.append((row, col))
+
+        return available_moves
+
     def find_best_move(self):
+        available_moves = self.get_available_moves()
+        if len(available_moves) == 9:
+            return (1, 1)
+
         player = self.current_player
 
-        win_move = self.find_immediate_win(player)
-        if win_move is not None:
-            return win_move
-        block_move = self.block_opponent_win(player)
-        if block_move is not None:
-            return block_move
-        
         best_score = -float('inf')
         best_move = None
-        for row in range(3):
-            for col in range(3):
-                if self.board[row][col] is None:
-                    self.board[row][col] = player
-                    score = self.minimax(0, False, player)
-                    self.board[row][col] = None
-                    if score > best_score:
-                        best_score = score
-                        best_move = (row, col)
+        for available_move in available_moves:
+            row = available_move[0]
+            col = available_move[1]
+            self.board[row][col] = player
+            score = self.minimax(0, False, player)
+            self.board[row][col] = None
+            if score > best_score:
+                best_score = score
+                best_move = (row, col)
         return best_move
+
+    def random_pick(self):
+        available_moves = self.get_available_moves()
+        return self.random_candidate(available_moves)
