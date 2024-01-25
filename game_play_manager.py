@@ -46,12 +46,12 @@ class GamePlayManager:
 
     def draw_x(self, row, col):
         pygame.draw.line(self.screen, RED, 
-                        (col * SQUARE_SIZE + SPACE, row * SQUARE_SIZE + SQUARE_SIZE - SPACE), 
-                        (col * SQUARE_SIZE + SQUARE_SIZE - SPACE, row * SQUARE_SIZE + SPACE), 
+                        (col * SQUARE_SIZE + SPACE, (row + 1) * SQUARE_SIZE - SPACE), 
+                        ((col + 1) * SQUARE_SIZE - SPACE, row * SQUARE_SIZE + SPACE), 
                         CROSS_WIDTH)
         pygame.draw.line(self.screen, RED, 
                         (col * SQUARE_SIZE + SPACE, row * SQUARE_SIZE + SPACE), 
-                        (col * SQUARE_SIZE + SQUARE_SIZE - SPACE, row * SQUARE_SIZE + SQUARE_SIZE - SPACE), 
+                        ((col + 1) * SQUARE_SIZE - SPACE, (row + 1) * SQUARE_SIZE - SPACE), 
                         CROSS_WIDTH)
 
     def handle_events(self, events):
@@ -64,14 +64,7 @@ class GamePlayManager:
         if self.game.available_square(row, col):
             self.game.mark_square(row, col)
             self.update_board(row, col)
-
-            if self.game.check_win():
-                self.game.game_over = True
-            elif self.game.check_draw():
-                self.game.game_over = True
-            else:
-                self.game.toggle_player()
-                self.handle_ai_move()
+            self.post_move_actions()
 
     def update_board(self, row, col):
         if self.game.board[row][col] == 1:
@@ -79,12 +72,42 @@ class GamePlayManager:
         elif self.game.board[row][col] == 2:
             self.draw_o(row, col)
 
+    def post_move_actions(self):
+            if self.game.check_win():
+                self.game.game_over = True
+            elif self.game.check_draw():
+                self.game.game_over = True
+            else:
+                self.game.toggle_player()
+
     def handle_ai_move(self):
-        # AI move logic for 'easy' or 'hard' mode
-        pass
+        if self.game.mode == 'freeplay':
+            return
+
+        if self.game.current_player != 2:
+            return
+
+        # First, check for an immediate win
+        next_move = self.game.find_immediate_win()
+
+        # Then, check for a block opponent win
+        if not next_move:
+            next_move = self.game.block_opponent_win()
+
+        if not next_move:
+            if self.game.mode == 'hard':
+                # Find best move
+                next_move = self.game.find_best_move()
+            else:
+                # Randomly pick a move
+                next_move = self.game.random_pick()
+        
+        self.game.mark_square(next_move[0], next_move[1])
+        self.update_board(next_move[0], next_move[1])
+        self.post_move_actions()
 
     def get_row_col_from_mouse(self, pos):
-        x, y = pos
-        row = y // SQUARE_SIZE
-        col = x // SQUARE_SIZE
-        return row, col
+            x, y = pos
+            row = y // SQUARE_SIZE
+            col = x // SQUARE_SIZE
+            return row, col

@@ -25,13 +25,16 @@ class GameStateManager:
         if mode == 'waiting':
             self.menu.draw()
         else:
-            self.game = TicTacToe(mode, turn)
+            self.game = TicTacToe(mode)
             self.state = 'game'
             self.game_play_manager = GamePlayManager(self.screen, self.game)
+            if turn == 'ai':
+                self.game.toggle_player()
 
     def handle_game(self, events):
         self.game_play_manager.draw_board()
         self.game_play_manager.handle_events(events)
+        self.game_play_manager.handle_ai_move()
         if self.game.game_over:
             self.state = 'game_over'
 
