@@ -34,6 +34,7 @@ python main.py
 - The YouTube tutorials of this game:
 - [Create Tic-Tac-Toe Game in 5 Minutes with Python & PyGame!](https://youtu.be/0ezzs9hYxd0).
 - [Enhance Tic-Tac-Toe Game with State Design Pattern in 5 Minutes with Python & PyGame!](https://youtu.be/EPm3eykqxLU).
+- [integrate AI strategies into Tic-Tac-Toe Game in 5 Minutes with Python & PyGame!](https://youtu.be/ExRVgGV3e1Y).
  
 
 
